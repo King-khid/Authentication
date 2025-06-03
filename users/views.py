@@ -2,6 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import RegisterSerializer, OTPVerifySerializer, ResendOTPSerializer
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import LoginSerializer
 
 
 # Register View
@@ -11,7 +14,7 @@ class RegisterView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Registration successful. Please check your email for the OTP."}, status=status.HTTP_201_CREATED)
-        return Response({"registration failed, please try again"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "User already exist"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # OTP Verification View
@@ -31,3 +34,25 @@ class ResendOTPView(APIView):
             serializer.save()
             return Response({"message": "A new OTP has been sent to your email."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LoginView(APIView):
+    def post(self, request):
+        identifier = request.data.get('identifier')
+        password = request.data.get('password')
+
+        if not identifier or not password:
+            return Response({"error": "Please provide email/username and password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(request, username=identifier, password=password)
+
+        if not user:
+            return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_active:
+            return Response({"error": "Account is inactive."}, status=status.HTTP_403_FORBIDDEN)
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        })

@@ -3,6 +3,9 @@ from .models import User
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate
+from rest_framework.exceptions import AuthenticationFailed
 
 # 1. Registration Serializer
 class RegisterSerializer(serializers.ModelSerializer):
@@ -90,3 +93,30 @@ class ResendOTPSerializer(serializers.Serializer):
             recipient_list=[user.email],
             fail_silently=False,
         )
+
+class LoginSerializer(serializers.Serializer):
+    identifier = serializers.CharField()  # Accepts either username or email
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        identifier = data.get('identifier')
+        password = data.get('password')
+
+        # Try email first
+        user = User.objects.filter(email__iexact=identifier).first()
+
+        # If not found by email, try username
+        if not user:
+            user = User.objects.filter(user_name__iexact=identifier).first()
+
+        if not user:
+            raise AuthenticationFailed("User not found.")
+
+        if not user.check_password(password):
+            raise AuthenticationFailed("Incorrect password.")
+
+        if not user.is_verified:
+            raise AuthenticationFailed("Account is not verified.")
+
+        data['user'] = user
+        return data
