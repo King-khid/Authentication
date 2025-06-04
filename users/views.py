@@ -23,7 +23,7 @@ class OTPVerifyView(APIView):
         serializer = OTPVerifySerializer(data=request.data)
         if serializer.is_valid():
             return Response({"message": "Account verified successfully."}, status=status.HTTP_200_OK)
-        return Response({"invalid OTP, please try again"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"This OTP has expired, click on resend to get a new one"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Resend OTP View
@@ -35,18 +35,12 @@ class ResendOTPView(APIView):
             return Response({"message": "A new OTP has been sent to your email."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#login view
 class LoginView(APIView):
     def post(self, request):
-        identifier = request.data.get('identifier')
-        password = request.data.get('password')
-
-        if not identifier or not password:
-            return Response({"error": "Please provide email/username and password."}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = authenticate(request, username=identifier, password=password)
-
-        if not user:
-            return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
 
         if not user.is_active:
             return Response({"error": "Account is inactive."}, status=status.HTTP_403_FORBIDDEN)

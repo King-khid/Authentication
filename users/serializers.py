@@ -52,7 +52,7 @@ class OTPVerifySerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid email or OTP.")
 
         # Optional: Check if OTP is expired
-        if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(minutes=10):
+        if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(minutes=1):
             raise serializers.ValidationError("OTP has expired. Please request a new one.")
 
         # Mark user as verified
