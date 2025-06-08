@@ -4,6 +4,7 @@ from rest_framework import status
 from .serializers import RegisterSerializer, OTPVerifySerializer, ResendOTPSerializer
 
 
+
 # Register View
 class RegisterView(APIView):
     def post(self, request):
