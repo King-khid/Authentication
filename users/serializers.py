@@ -29,7 +29,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Send OTP to user's email
         send_mail(
             subject='Verify Your Email - OTP Code',
-            message=f'Your code is: {user.otp} use it to access your account. if you did not request this, please ignore. yours, The instagram clone Team',
+            message=f'Your code is: {user.otp} use it to access your account. if you did not request this, please ignore.'
+            'yours, The instagram clone Team',
             from_email='no-reply@myproject.com',
             recipient_list=[user.email],
             fail_silently=False,
@@ -88,7 +89,8 @@ class ResendOTPSerializer(serializers.Serializer):
         # Send new OTP to email
         send_mail(
             subject='Your New OTP Code',
-            message=f'Your new code is: {user.otp} Use it to verify your account.',
+            message=f'Your new code is: {user.otp} Use it to verify your account.'
+            'if you did not request for this, please ignore',
             from_email='no-reply@myproject.com',
             recipient_list=[user.email],
             fail_silently=False,
